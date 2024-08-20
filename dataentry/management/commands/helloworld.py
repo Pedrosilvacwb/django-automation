@@ -5,4 +5,6 @@ class Command(BaseCommand):
     help = "Prints Hello World"
 
     def handle(self, *args, **kwargs):
-        self.stdout.write("Hello World!")
+        # we write the logic
+        # testing git
+        self.stdout.write("Hello World")
