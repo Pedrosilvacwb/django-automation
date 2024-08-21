@@ -1,11 +1,10 @@
 # from dataentry.models import Student
 import csv
 
-from django.core.management.base import BaseCommand, CommandError, CommandParser
-from django.db import DataError
+from django.core.management.base import BaseCommand, CommandParser
 from django.db.models import Model
 
-from dataentry.utils import search_for_database_model
+from dataentry.utils import check_csv_errors
 
 # Proposed command - python manage.py importdata file_path model_name
 
@@ -22,21 +21,10 @@ class Command(BaseCommand):
         file_path = kwargs["file_path"]
         model_name = kwargs["model_name"].capitalize()
 
-        model: Model | None = search_for_database_model(model_name)
-
-        if not model:
-            raise CommandError(f'Model "{model_name}" not found')
-
-        model_fields = [
-            field.name for field in model._meta.fields if field.name != "id"
-        ]
+        model: Model | None = check_csv_errors(file_path, model_name)
 
         with open(file_path, "r") as file:
             reader = csv.DictReader(file)
-            csv_header = reader.fieldnames
-
-            if csv_header != model_fields:
-                raise DataError("CSV file doesn't match with the model fields")
             for row in reader:
                 model.objects.create(**row)
         self.stdout.write(self.style.SUCCESS("Data imported from CSV successfully!"))

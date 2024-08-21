@@ -4,7 +4,7 @@ from datetime import datetime
 from django.core.management.base import BaseCommand, CommandError, CommandParser
 from django.db.models import Model
 
-from dataentry.utils import search_for_database_model
+from dataentry.utils import check_csv_errors
 
 # proposed command = python manage.py exportdata model_name
 
@@ -18,7 +18,7 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         model_name = kwargs["model_name"]
 
-        model: Model | None = search_for_database_model(model_name)
+        model: Model | None = check_csv_errors(model_name)
 
         if not model:
             raise CommandError(f'Model "{model_name}" not found')

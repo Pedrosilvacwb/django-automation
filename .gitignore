@@ -8,6 +8,7 @@ media
 
 # Backup files # 
 *.bak 
+redis/
 
 # If you are using PyCharm # 
 # User-specific stuff
