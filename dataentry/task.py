@@ -5,7 +5,7 @@ from django.core.management import call_command
 
 from awd_main.celery import app
 
-from .utils import generate_csv_file, send_email_notification
+from .utils import send_email_notification
 
 
 @app.task
@@ -39,11 +39,9 @@ def import_data_task(file_path: str, model_name: str):
 @app.task
 def export_data_task(model_name: str):
     try:
-        call_command("exportdata", model_name)
+        file_path = call_command("exportdata", model_name)
     except Exception as e:
         raise e
-
-    file_path = generate_csv_file(model_name)
 
     mail_subject = "Export Data Completed"
     message = "Your data has been exported! Please download the attachment"

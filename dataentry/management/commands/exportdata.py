@@ -47,3 +47,4 @@ class Command(BaseCommand):
                 writer.writerow(data_values)
 
         self.stdout.write(self.style.SUCCESS("Data exported successfully!"))
+        return file_path
