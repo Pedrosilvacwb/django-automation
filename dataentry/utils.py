@@ -1,4 +1,6 @@
 import csv
+import os
+from datetime import datetime
 
 from django.apps import apps
 from django.conf import settings
@@ -54,10 +56,30 @@ def check_csv_errors(file_path: str, model_name: str) -> Model | None:
     return model
 
 
-def send_email_notification(mail_subject, message, to_email):
+def send_email_notification(
+    mail_subject: str, message: str, to_email: str, attachment: str = None
+):
     try:
         from_email = settings.DEFAULT_FROM_EMAIL
         mail = EmailMessage(mail_subject, message, from_email, to=[to_email])
+        if attachment is not None:
+            mail.attach_file(attachment)
         mail.send()
     except Exception as e:
         raise e
+
+
+def get_models_to_context() -> dict:
+    models = get_all_custom_models()
+    context = {"models": models}
+    return context
+
+
+def generate_csv_file(model_name: str):
+    timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+
+    export_dir = "exported"
+    file_name = f"exported_{model_name}_data_{timestamp}.csv"
+
+    file_path = os.path.join(settings.MEDIA_ROOT, export_dir, file_name)
+    return file_path

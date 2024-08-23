@@ -5,8 +5,8 @@ from django.shortcuts import redirect, render
 
 from uploads.models import Upload
 
-from .task import import_data_task
-from .utils import check_csv_errors, get_all_custom_models
+from .task import export_data_task, import_data_task
+from .utils import check_csv_errors, get_models_to_context
 
 
 def import_data(request: HttpRequest):
@@ -34,6 +34,21 @@ def import_data(request: HttpRequest):
         )
         return redirect("import_data")
     else:
-        models = get_all_custom_models()
-        context = {"models": models}
+        context = get_models_to_context()
     return render(request, "dataentry/importdata.html", context)
+
+
+def export_data(request: HttpRequest) -> render:
+    if request.method == "POST":
+        model_name = request.POST.get("model_name")
+
+        export_data_task.delay(model_name)
+        messages.success(
+            request,
+            "Your data is being exported, you will be notified once it is done!",
+        )
+        return redirect("export_data")
+
+    else:
+        context = get_models_to_context()
+    return render(request, "dataentry/exportdata.html", context)

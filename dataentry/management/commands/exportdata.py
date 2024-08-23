@@ -1,10 +1,10 @@
 import csv
-from datetime import datetime
 
+from django.apps import apps
 from django.core.management.base import BaseCommand, CommandError, CommandParser
 from django.db.models import Model
 
-from dataentry.utils import check_csv_errors
+from dataentry.utils import generate_csv_file
 
 # proposed command = python manage.py exportdata model_name
 
@@ -18,15 +18,21 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         model_name = kwargs["model_name"]
 
-        model: Model | None = check_csv_errors(model_name)
+        model = None
+
+        for app_config in apps.get_app_configs():
+            try:
+                model: Model = apps.get_model(app_config.label, model_name)
+                break
+            except LookupError:
+                continue
 
         if not model:
             raise CommandError(f'Model "{model_name}" not found')
 
         data = model.objects.all()
 
-        timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-        file_path = f"exported_{model_name}_data_{timestamp}.csv"
+        file_path = generate_csv_file(model_name)
 
         with open(file_path, "w", newline="") as file:
             writer = csv.writer(file)
