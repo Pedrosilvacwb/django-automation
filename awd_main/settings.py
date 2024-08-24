@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     "uploads",
     "crispy_forms",
     "crispy_bootstrap5",
+    "emails",
+    "ckeditor",
 ]
 
 MIDDLEWARE = [
@@ -160,3 +162,12 @@ DEFAULT_TO_EMAIL = "pedrosilvacwb@gmail.com"
 # crispy forms
 
 CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+
+# CKEditor Config
+
+CKEDITOR_CONFIGS = {
+    "default": {
+        "height": 250,
+    },
+}
