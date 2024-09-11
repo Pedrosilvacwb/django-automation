@@ -27,7 +27,7 @@ SECRET_KEY = config("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DEBUG", cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "crispy_bootstrap5",
     "emails",
     "ckeditor",
+    "anymail",
 ]
 
 MIDDLEWARE = [
@@ -171,3 +172,18 @@ CKEDITOR_CONFIGS = {
         "height": 250,
     },
 }
+
+
+# Anymail Config
+
+# ANYMAIL = {
+#     "SENDINBLUE_API_KEY": config("SENDINBLUE_API_KEY"),
+# }
+
+# EMAIL_BACKEND = "anymail.backends.sendinblue.EmailBackend"
+
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://af98-2804-14c-87c1-d76a-fa34-6a12-3223-e5a7.ngrok-free.app"
+]
+BASE_URL = "https://af98-2804-14c-87c1-d76a-fa34-6a12-3223-e5a7.ngrok-free.app"

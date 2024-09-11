@@ -1,13 +1,18 @@
 import csv
+import hashlib
 import os
+import time
 from datetime import datetime
 
+from bs4 import BeautifulSoup
 from django.apps import apps
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.core.management import CommandError
 from django.db import DataError
 from django.db.models import Model
+
+from emails.models import Email, EmailTracking, Sent, Subscriber
 
 
 def get_all_custom_models() -> list[str]:
@@ -57,16 +62,58 @@ def check_csv_errors(file_path: str, model_name: str) -> Model | None:
 
 
 def send_email_notification(
-    mail_subject: str, message: str, to_email: str, attachment: str = None
+    mail_subject: str,
+    message: str,
+    to_email: str,
+    attachment: str = None,
+    email_id: str = None,
 ):
     try:
         from_email = settings.DEFAULT_FROM_EMAIL
-        mail = EmailMessage(mail_subject, message, from_email, to=to_email)
-        if attachment is not None:
-            mail.attach_file(attachment)
 
-        mail.content_subtype = "html"
-        mail.send()
+        for email_address in to_email:
+            if email_id:
+                email = Email.objects.get(pk=email_id)
+                subscriber = Subscriber.objects.get(
+                    email_list=email.email_list, email_address=email_address
+                )
+                data_to_hash = f"{email_address}-{str(time.time())}"
+                unique_id = hashlib.sha256(data_to_hash.encode()).hexdigest()
+
+                email_tracking = EmailTracking.objects.create(
+                    email=email, subscriber=subscriber, unique_id=unique_id
+                )
+
+                base_url = settings.BASE_URL
+                click_trackin_url = f"{base_url}/emails/track/click/{unique_id}"
+
+                soup = BeautifulSoup(message, "html.parser")
+
+                urls = [a["href"] for a in soup.find_all("a", href=True)]
+
+                if urls:
+                    for url in urls:
+                        trackin_url = f"{click_trackin_url}?url={url}"
+                        message = message.replace(f"{url}", f"{trackin_url}")
+
+                open_tracking_url = f"{base_url}/emails/track/open/{unique_id}"
+                open_tracking_img = (
+                    f"<img src='{open_tracking_url}' width='1' height='1'>"
+                )
+                message += open_tracking_img
+
+            mail = EmailMessage(mail_subject, message, from_email, to=[email_address])
+            if attachment is not None:
+                mail.attach_file(attachment)
+
+            mail.content_subtype = "html"
+            mail.send()
+
+        if email_id:
+            sent = Sent()
+            sent.email = email
+            sent.total_sent = email.email_list.count_subscribers()
+            sent.save()
     except Exception as e:
         raise e
 
